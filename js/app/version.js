@@ -9,7 +9,7 @@ checkVersion = function (callback) {
                 // 提示下载新版本
                 swal("new version!", "检测到新版本，是否下载？", "warning").then(value => {
                     if (value) {
-                        window.location = "http://www.molapages.xyz/download/molachat.apk"
+                        window.location = "https://molaspace.xyz/download/molachat.apk"
                     }
                     callback()
                 })
