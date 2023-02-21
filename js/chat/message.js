@@ -9,13 +9,13 @@ $(document).ready(function () {
     var inEditMode = false
 
     // dom初始化位置
-    $viewModal.css("max-width",800)
-    if (window.innerWidth > 800) {
+    $viewModal.css("max-width",1000)
+    if (window.innerWidth > 1000) {
         $viewModal.css("left",(window.innerWidth - $viewModal.innerWidth())/2)
     }
 
     addResizeEventListener(function() {
-        if (window.innerWidth > 800) {
+        if (window.innerWidth > 1000) {
             $viewModal.css("left",(window.innerWidth - $viewModal.innerWidth())/2)
         } else {
             $viewModal.css("left",0)
