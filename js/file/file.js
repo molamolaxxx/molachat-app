@@ -83,13 +83,7 @@ $(document).ready(function () {
         $chatMsg.append(dom);
 
         //滚动
-        setTimeout(() => {
-            document.querySelector(".chat__messages").scrollBy({
-                top: 500000,
-                left: 0,
-                behavior: 'smooth'
-            });
-        }, 100)
+        scrollToChatContainerBottom(500, false)
         //设置相关监听器 1.点击取消上传监听 2.鼠标移动放大监听
         $("#cancel" + xhr.currentUploadFileId).on("click", function () {
             swal({
