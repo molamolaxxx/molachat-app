@@ -167,7 +167,10 @@ $(document).ready(function () {
      */
     $('input.chat__input').on('paste', function (event) {
         if (!chatDom.className === "chat active") return
-        const items = event.originalEvent?.clipboardData?.items
+        const items = null
+        if (event.originalEvent && event.originalEvent.clipboardData) {
+            items = event.originalEvent.clipboardData.items
+        }
         if (!items || items.length === 0) {
             return
         }
