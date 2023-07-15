@@ -112,7 +112,7 @@ $(document).ready(function () {
             //dom中添加消息
             $messageBox.append(dom);
         }
-        var imgDivArr = document.querySelectorAll(".imgFile")
+        var imgDivArr = document.querySelectorAll("#imgready")
         var idx = 0;
         for (var i = 0; i < imgDivArr.length; i++) {
             var img = imgDivArr[i];
