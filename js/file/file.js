@@ -63,7 +63,8 @@ $(document).ready(function () {
                 $("#cancel" + xhr.currentUploadFileId).css("display", "none");
                 //恢复文件大小
                 $("#img" + xhr.currentUploadFileId).css("margin-left", "0rem");
-                swal("success", "发送成功！", "success");
+                // swal("success", "发送成功！", "success");
+                showToast("发送成功",1000)
                 var url = result.data;
             }
             window.uploadLock = false;
