@@ -128,15 +128,14 @@ $(document).ready(function () {
                     }, 1050)
                 }
 
-                idx++;
                 console.log("onload");
-                if (idx >= imgDivArr.length - 1) {
+                if (++idx === imgDivArr.length) {
                     removeSpinner()
                     scrollToChatContainerBottom(isSideBarOutside() ? 100 : 1000)
                 }
             };
         }
-        if (imgDivArr.length === 1) {
+        if (imgDivArr.length === 0) {
             removeSpinner()
             scrollToChatContainerBottom(isSideBarOutside() ? 100 : 1000)
         }

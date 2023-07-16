@@ -264,6 +264,7 @@ $(document).ready(function() {
                         animating = false;
                         // 展现用户栏
                         showUserBar()
+                        scrollToChatContainerBottom(100)
                     });
                 }, "inCubic");
             }, sContTrans);
