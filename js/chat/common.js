@@ -344,23 +344,13 @@ isMarkdown = function (text) {
 }
 
 var timeoutId
-scrollToChatContainerBottom = function (laterDuring, skip) {
+scrollToChatContainerBottom = function (laterDuring) {
     //滚动
     if (timeoutId) {
         return
     }
 
     var container = document.querySelector(".chat__messages")
-    // if (skip) {
-    //     var timeDivArr = document.querySelectorAll(".time")
-    //     if (timeDivArr && timeDivArr.length > 0) {
-    //         var toScrollDivIdx = Math.max(timeDivArr.length - 5, 0)
-    //         // 计算目标div元素相对于父div的偏移量
-    //         var offset = timeDivArr[toScrollDivIdx].offsetTop - container.offsetTop;
-    //         // 设置滚动条的位置，使标题3的div元素处于可视区域内
-    //         container.scrollTop = offset;
-    //     }
-    // }
 
     timeoutId = setTimeout(() => {
         container.scrollBy({

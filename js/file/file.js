@@ -84,7 +84,7 @@ $(document).ready(function () {
         $chatMsg.append(dom);
 
         //滚动
-        scrollToChatContainerBottom(500, false)
+        scrollToChatContainerBottom(500)
         //设置相关监听器 1.点击取消上传监听 2.鼠标移动放大监听
         $("#cancel" + xhr.currentUploadFileId).on("click", function () {
             swal({

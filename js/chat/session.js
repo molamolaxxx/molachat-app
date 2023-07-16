@@ -132,13 +132,13 @@ $(document).ready(function () {
                 console.log("onload");
                 if (idx >= imgDivArr.length - 1) {
                     removeSpinner()
-                    scrollToChatContainerBottom(isSideBarOutside() ? 100 : 1000, true)
+                    scrollToChatContainerBottom(isSideBarOutside() ? 100 : 1000)
                 }
             };
         }
         if (imgDivArr.length === 1) {
             removeSpinner()
-            scrollToChatContainerBottom(isSideBarOutside() ? 100 : 1000, true)
+            scrollToChatContainerBottom(isSideBarOutside() ? 100 : 1000)
         }
     }
 
@@ -184,6 +184,10 @@ $(document).ready(function () {
                                     $(fileImg).on('click', function () {
                                         syncToHolder(fileImg.src)
                                     })
+                                    fileImg.onload = function() {
+                                        console.log("上传的图片加载完成common");
+                                        scrollToChatContainerBottom(100)
+                                    }
                                 }
                                 a2.target = "_blank";
                             }
@@ -197,7 +201,7 @@ $(document).ready(function () {
 
                 $messageBox.append(dom);
 
-                scrollToChatContainerBottom(100, false)
+                scrollToChatContainerBottom(100)
 
                 // 判断是不是当前页
                 if (!isCurrentPage) {
@@ -232,6 +236,10 @@ $(document).ready(function () {
                         $(fileImg).on('click', function () {
                             syncToHolder(fileImg.src)
                         })
+                        fileImg.onload = function() {
+                            console.log("上传的图片加载完成");
+                            scrollToChatContainerBottom(100)
+                        }
                     }
                     a2.target = "_blank";
                 }
@@ -250,7 +258,7 @@ $(document).ready(function () {
             }
 
             $messageBox.append(dom);
-            scrollToChatContainerBottom(100, false)
+            scrollToChatContainerBottom(100)
             // 判断是不是当前页
             if (!isCurrentPage) {
                 document.getElementsByTagName("title")[0].innerText = "molachat(当前有未读消息)";

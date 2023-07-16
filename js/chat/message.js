@@ -151,7 +151,7 @@ $(document).ready(function () {
         $chatMsg.append(mainDoc);
 
         //滚动
-        scrollToChatContainerBottom(100, false)
+        scrollToChatContainerBottom(100)
     }
 
     //删除所有记录
