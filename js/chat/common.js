@@ -351,7 +351,6 @@ scrollToChatContainerBottom = function (laterDuring) {
     }
 
     var container = document.querySelector(".chat__messages")
-
     timeoutId = setTimeout(() => {
         container.scrollBy({
             top: 500000,

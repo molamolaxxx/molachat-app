@@ -113,44 +113,20 @@ $(document).ready(function () {
             $messageBox.append(dom);
         }
         var imgDivArr = document.querySelectorAll("#imgready")
-        var idx = 0;
         for (var i = 0; i < imgDivArr.length; i++) {
             var img = imgDivArr[i];
+            if (img.complete) {
+                continue
+            }
+            $(img).addClass("imgFileTemp")
             img.onload = function () {
-
-                if (isSideBarOutside()) {
-                    addSpinner("app_content", false)
-                } else {
-                    setTimeout(() => {
-                        if (idx < imgDivArr.length - 1) {
-                            addSpinner("app_content", false)
-                        }
-                    }, 1050)
-                }
-
                 console.log("onload");
-                if (++idx === imgDivArr.length) {
-                    removeSpinner()
-                    scrollToChatContainerBottom(isSideBarOutside() ? 100 : 1000)
-                }
+                $(this).removeClass("imgFileTemp")
             };
         }
-        if (imgDivArr.length === 0) {
-            removeSpinner()
-            scrollToChatContainerBottom(isSideBarOutside() ? 100 : 1000)
-        }
+
+        scrollToChatContainerBottom(isSideBarOutside() ? 100 : 1000)
     }
-
-    // $(".chat__messages").on('DOMContentLoaded', function() {
-    //     console.log('DOM 结构加载完成');
-
-    //     // 监听所有资源（包括图片）加载完成
-    //     window.onload = function() {
-    //         console.log('所有资源加载完成');
-    //     };
-    // })
-
-
 
     //收到消息，回调
     receiveMessage = function (message) {
@@ -183,7 +159,7 @@ $(document).ready(function () {
                                     $(fileImg).on('click', function () {
                                         syncToHolder(fileImg.src)
                                     })
-                                    fileImg.onload = function() {
+                                    fileImg.onload = function () {
                                         console.log("上传的图片加载完成common");
                                         scrollToChatContainerBottom(100)
                                     }
@@ -235,7 +211,7 @@ $(document).ready(function () {
                         $(fileImg).on('click', function () {
                             syncToHolder(fileImg.src)
                         })
-                        fileImg.onload = function() {
+                        fileImg.onload = function () {
                             console.log("上传的图片加载完成");
                             scrollToChatContainerBottom(100)
                         }
