@@ -241,6 +241,11 @@ $(document).ready(function () {
             showToast("输入不能为空", 1000)
             return;
         }
+        
+        if (queryStreamDom(getActiveSessionId())) {
+            showToast("当前状态无法发送新消息，请先终止当前会话", 1000)
+            return;
+        }
 
         //清空文本框
         $chatInput.value = "";
@@ -249,21 +254,7 @@ $(document).ready(function () {
         $chatInput.focus();
 
         //显示在屏幕上，滚动
-        addMessage($chatMsg, content, true);
-
-        //获取socket
-        var socket = getSocket();
-        //构建message对象
-        var action = new Object();
-        action.code = SEND_MESSAGE;
-        action.msg = "ok";
-        var data = new Object();
-        data.chatterId = getChatterId();
-        data.sessionId = getActiveSessionId();
-        data.content = content;
-        action.data = data;
-
-        socket.send(JSON.stringify(action));
+        sendMessageInner(content)
     });
 
     // 明细模态框初始化
@@ -369,6 +360,11 @@ $(document).ready(function () {
         if (content === "") {
             // swal("stop!","输入不能为空","warning");
             showToast("输入不能为空", 1000)
+            return;
+        }
+
+        if (queryStreamDom(getActiveSessionId())) {
+            showToast("当前状态无法发送新消息", 1000)
             return;
         }
 

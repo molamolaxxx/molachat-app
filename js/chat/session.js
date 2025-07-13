@@ -25,6 +25,9 @@ $(document).ready(function () {
 
     // 流map
     var streamMessageMap = new Map()
+    queryStreamDom = function(sessionId) {
+        return streamMessageMap.get(sessionId)
+    }
 
     function selectMessageDom(message, isMain) {
         var dom;
