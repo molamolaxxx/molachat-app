@@ -110,6 +110,7 @@ $(document).ready(function () {
             mainDocChild.innerText = content.length > 200 ? content.slice(0, 200) + "\n...." : content
         } else {
             mainDocChild.innerText = content;
+            mainDocChild.fullText = content;
         }
         mainDoc.append(mainDocChild);
         mainDoc.mainDocChild = mainDocChild;
@@ -126,8 +127,7 @@ $(document).ready(function () {
                 const onClickCallback = (e) => {
                     // 流消息会自动刷新模态框，不用重置
                     $viewContent[0].triggerMessageId = mainDoc.messageId
-                    $viewContent[0].innerHTML = buildHighlightContent(content)
-                    addCopyButtonToPre($viewContent[0])
+                    buildHighlightContent(content)
                     $viewModal.modal('open')
                 }
                 $(copyIcon).on('click', onClickCallback)
@@ -157,7 +157,13 @@ $(document).ready(function () {
         originalCodes.splice(0, originalCodes.length)
     }
 
+
     buildHighlightContent = function (content) {
+        $viewContent[0].innerHTML = buildHighlightContentInner(content)
+        addCopyButtonToPre($viewContent[0])
+    }
+
+    buildHighlightContentInner = function (content) {
         const codeObj = hljs.highlightAuto(content)
         // 主流语言，显示用pre方便看
         let isCommonCode = codeObj.language === 'java' ||
@@ -374,6 +380,14 @@ $(document).ready(function () {
 
         sendMessageInner(content)
     })
+
+    // 支持 Ctrl+Enter 或 Shift+Enter 触发 editCompleteBtn 效果
+    $chatEditor.on('keydown', function (e) {
+        if ((e.ctrlKey || e.shiftKey) && e.keyCode === 13) {
+            e.preventDefault();
+            $editCompleteBtn.click();
+        }
+    });
 
     sendMessageInner = function (content) {
         //显示在屏幕上，滚动

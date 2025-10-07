@@ -22,12 +22,37 @@ $(document).ready(function () {
     // 消息模态框
     var $viewContent = $("#viewContent")
     var $messageViewModel = $("#message-view-modal")
+    var $messageViewContentScroll = $('#viewContentScroll')
 
     // 流map
     var streamMessageMap = new Map()
     queryStreamDom = function(sessionId) {
         return streamMessageMap.get(sessionId)
     }
+
+    // 检测viewContent的滚动
+    $messageViewContentScroll.scroll(function() {
+        const currentScrollTop = $(this).scrollTop()
+        if (!this.toInitScrollTop) {
+            this.toInitScrollTop = true
+            this.lastScrollTop = currentScrollTop
+            return
+        }
+        
+        // 到达底部检测
+        if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 20) {
+            // console.log("到达底部检测");
+            this.interruptAutoScroll = false
+        }
+
+        // 向上滚动
+        else if (currentScrollTop  < this.lastScrollTop) {
+            // console.log("向上滚动");
+            this.interruptAutoScroll = true
+        }
+        // 更新上次滚动位置
+        this.lastScrollTop = currentScrollTop
+    });
 
     function selectMessageDom(message, isMain) {
         var dom;
@@ -132,8 +157,9 @@ $(document).ready(function () {
             $messageBox.append(streamMessageDom);
             $(streamMessageDom.mainDocChild).on('click', () => {
                 $viewContent[0].triggerMessageId = streamMessageDom.messageId
-                $viewContent[0].innerHTML = buildHighlightContent(streamMessageDom.mainDocChild.innerText)
-                addCopyButtonToPre($viewContent[0])
+                buildHighlightContent(streamMessageDom.mainDocChild.fullText)
+                $messageViewContentScroll[0].interruptAutoScroll = false
+                $messageViewContentScroll[0].toInitScrollTop = false
                 $messageViewModel.modal('open')
             })
         }
@@ -159,6 +185,13 @@ $(document).ready(function () {
         }, 1500)
     }
 
+    var buildHighlightContentInterrupt = debounce(contentQuery => {
+        buildHighlightContent(contentQuery())
+    }, 1000)
+
+    var sliceInterrupt = debounce(dom => {
+        dom.innerText = dom.innerText.slice(-1000)
+    }, 1000)
 
     //收到消息，回调
     receiveStreamMessage = function (message) {
@@ -178,8 +211,9 @@ $(document).ready(function () {
                 dom = messageDom(message, false)
                 $(dom.mainDocChild).on('click', () => {
                     $viewContent[0].triggerMessageId = dom.messageId
-                    $viewContent[0].innerHTML = buildHighlightContent(dom.mainDocChild.innerText)
-                    addCopyButtonToPre($viewContent[0])
+                    buildHighlightContent(dom.mainDocChild.fullText)
+                    $messageViewContentScroll[0].interruptAutoScroll = false
+                    $messageViewContentScroll[0].toInitScrollTop = false
                     $messageViewModel.modal('open')
                 })
                 streamMessageMap.set(message.sessionId, dom)
@@ -190,12 +224,20 @@ $(document).ready(function () {
                     streamMessageMap.delete("cache_" + message.sessionId)
                     message.content = cachedMsg.content + message.content
                 }
+                dom.mainDocChild.fullText = dom.mainDocChild.fullText + message.content
                 dom.mainDocChild.innerText = dom.mainDocChild.innerText + message.content
+                sliceInterrupt(dom.mainDocChild)
                 if ($messageViewModel[0].className.indexOf('open') != -1 || end) {
                     if ($viewContent[0].triggerMessageId === dom.messageId) {
-                        $viewContent[0].innerHTML = buildHighlightContent(dom.mainDocChild.innerText)
-                        addCopyButtonToPre($viewContent[0])
-                        scrollToMessageViewBottom(100)
+                        // 是否被用户行为打断
+                        let interrupt = $messageViewContentScroll[0].interruptAutoScroll
+                        if (interrupt || dom.mainDocChild.fullText.length > 5000) {
+                            buildHighlightContentInterrupt(() => dom.mainDocChild.fullText)
+                        } else {
+                            buildHighlightContent(dom.mainDocChild.fullText)
+                        }
+                        $messageViewContentScroll[0].lastScrollTop = $messageViewContentScroll.scrollTop()
+                        scrollToMessageViewBottom(200, interrupt)
                     }
                 }
                 if (activeSession.scrollComplete) {
@@ -204,6 +246,7 @@ $(document).ready(function () {
             }
 
             if (end) {
+                buildHighlightContent(dom.mainDocChild.fullText)
                 streamMessageMap.delete(message.sessionId)
                 streamMessageMap.delete("cache_" + message.sessionId)
                 scrollToChatContainerBottom(100)
