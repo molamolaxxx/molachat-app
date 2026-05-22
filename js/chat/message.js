@@ -272,10 +272,10 @@ $(document).ready(function () {
         starting_top: '4%', // Starting top style attribute
         ending_top: '100%', // Ending top style attribute
         ready: function (modal, trigger) { // Callback for Modal open. Modal and trigger parameters available.
-
+            fetchContextUsage()
         },
         complete: function () {
-
+            $('#contextUsageWrapper').hide()
         }
     });
 
@@ -292,10 +292,10 @@ $(document).ready(function () {
         starting_top: '4%', // Starting top style attribute
         ending_top: '100%', // Ending top style attribute
         ready: function (modal, trigger) { // Callback for Modal open. Modal and trigger parameters available.
-
+            fetchContextUsage()
         },
         complete: function () {
-
+            $('#contextUsageWrapper').hide()
         }
     });
 
@@ -395,9 +395,13 @@ $(document).ready(function () {
         sendMessageInner(content)
     })
 
-    // 支持 Enter 触发发送，Shift+Enter 触发换行
+    // 支持 Enter 触发发送，Shift+Enter 触发换行（手机端回车始终换行）
     $chatEditor.on('keydown', function (e) {
         if (e.keyCode === 13) {
+            if (window.innerWidth <= 600) {
+                // 手机端回车不发送，允许默认换行行为
+                return;
+            }
             if (e.shiftKey) {
                 // Shift+Enter 允许默认换行行为
             } else {
@@ -425,6 +429,44 @@ $(document).ready(function () {
         action.data = data;
 
         socket.send(JSON.stringify(action));
+    }
+
+    fetchContextUsage = function () {
+        var $wrapper = $('#contextUsageWrapper')
+        var chatter = getActiveChatter()
+        if (!chatter || chatter.robotGroup !== 'acp') {
+            $wrapper.hide()
+            return
+        } else {
+            var circle = document.getElementById('contextUsageCircle')
+            var text = document.getElementById('contextUsageText')
+            circle.setAttribute('stroke-dasharray', '0 100')
+            circle.setAttribute('stroke', '#4caf50')
+            $wrapper.show()
+        }
+        $.ajax({
+            url: getPrefix() + "/chat/robot/context-usage/" + getActiveSessionId(),
+            type: "get",
+            dataType: "json",
+            timeout: 3000,
+            success: function (result) {
+                var pct = null
+                if (!result.data && result.data !== 0) {
+                    pct = 0
+                } else {
+                    pct = Math.min(Math.round(result.data), 100)
+                }
+                var circle = document.getElementById('contextUsageCircle')
+                var text = document.getElementById('contextUsageText')
+                requestAnimationFrame(function () {
+                    circle.setAttribute('stroke-dasharray', pct + ' 100')
+                    circle.setAttribute('stroke', pct < 60 ? '#4caf50' : pct < 85 ? '#ff9800' : '#f44336')
+                    text.textContent = pct + '%'
+                })
+                $wrapper.attr('title', '上下文用量: ' + pct + '%')
+                
+            }
+        })
     }
 
     popupAndSendCmd = function(cmd, args, cmdDesc) {

@@ -29,6 +29,14 @@ $(document).ready(function () {
     queryStreamDom = function(sessionId) {
         return streamMessageMap.get(sessionId)
     }
+    clearStreamMessageMap = function() {
+        streamMessageMap.forEach((dom, key) => {
+            if (dom && dom.remove) {
+                $(dom).remove()
+            }
+        })
+        streamMessageMap.clear()
+    }
 
     // 检测viewContent的滚动
     $messageViewContentScroll.scroll(function() {
@@ -56,8 +64,8 @@ $(document).ready(function () {
 
     function selectMessageDom(message, isMain) {
         var dom;
-        if (message.content) {
-            // 如果是群聊message
+        if (message.content || !message.url) {
+            // 有内容，或者既没内容也没url（不是文件）
             if (message.common) {
                 dom = commonMessageDom(message, isMain, getChatterMap().get(message.chatterId));
             }
@@ -66,7 +74,7 @@ $(document).ready(function () {
                 dom = messageDom(message, isMain);
             }
         } else {
-            // 如果是群聊message
+            // 没有content但有url，才是文件
             if (message.common) {
                 dom = commonFileDom(message, isMain, isMain, "ready", "/chat/" + message.url, "/chat/" + message.snapshotUrl, getChatterMap().get(message.chatterId));
             }
@@ -153,6 +161,15 @@ $(document).ready(function () {
 
         // 如果存在stream消息，也要添加到messageBox中
         var streamMessageDom = streamMessageMap.get(activeSession.sessionId)
+        if (!streamMessageDom) {
+            // 检查是否有非活跃期间缓存的流式消息
+            var cachedMsg = streamMessageMap.get("cache_" + activeSession.sessionId)
+            if (cachedMsg) {
+                streamMessageMap.delete("cache_" + activeSession.sessionId)
+                streamMessageDom = messageDom(cachedMsg, false)
+                streamMessageMap.set(activeSession.sessionId, streamMessageDom)
+            }
+        }
         if (streamMessageDom) {
             $messageBox.append(streamMessageDom);
             $(streamMessageDom.mainDocChild).on('click', () => {
@@ -218,6 +235,9 @@ $(document).ready(function () {
                 })
                 streamMessageMap.set(message.sessionId, dom)
                 $messageBox.append(dom);
+                if (message.openViewModal) {
+                    $(dom.mainDocChild).click()
+                }
             } else {
                 const cachedMsg = streamMessageMap.get("cache_" + message.sessionId)
                 if (cachedMsg) {

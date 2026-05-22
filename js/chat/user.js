@@ -9,6 +9,7 @@ $(document).ready(function () {
     const HEART_BEAT = 276;
     const VIDEO_REQUEST = 378;
     const VIDEO_RESPONSE = 379;
+    const CMD_CONFIRM = 488;
 
     //唯一用户标识
     var chatterId;
@@ -376,10 +377,12 @@ $(document).ready(function () {
         if (socket) {
             socket.close()
         }
+        clearStreamMessageMap()
         socket = new WebSocket(getSocketPrefix() + "/chat/server/" + chatterId + "," + getDeviceId());
         socket.onopen = function (ev) {
             console.info("socket已经打开");
             console.info(ev);
+            socketErrorTimes = 0;
         };
 
         socket.onmessage = function (ev) {
@@ -395,6 +398,16 @@ $(document).ready(function () {
                     }
                 )
             } else if (result.code == CREATE_SESSION) {
+                var currentChatter = getActiveChatter();
+                if (currentChatter) {
+                    var chatterSet = result.data.chatterSet || [];
+                    var hasCurrentChatter = chatterSet.some(function(c) { return c.id === currentChatter.id; });
+                    // 群聊时activeChatter是temp-chatter，不在chatterSet中，用sessionId兜底
+                    var isGroupMatch = currentChatter.id === "temp-chatter" && result.data.sessionId === "common-session";
+                    if (!hasCurrentChatter && !isGroupMatch) {
+                        return;
+                    }
+                }
                 //新建session
                 createSession(result.data);
             } else if (result.code == RECEIVE_MESSAGE) {
@@ -409,6 +422,9 @@ $(document).ready(function () {
             } else if (result.code == VIDEO_RESPONSE) {
                 // 视频消息返回
                 receiveVideoResponse(result.data)
+            } else if (result.code == CMD_CONFIRM) {
+                // 命令二次确认弹窗
+                showCmdConfirmDialog(result.data)
             }
             // console.info(result);
         };
@@ -431,6 +447,71 @@ $(document).ready(function () {
             console.info(ev);
 
         }
+    }
+
+    /**
+     * 命令二次确认弹窗
+     */
+    showCmdConfirmDialog = function (data) {
+        var cmdName = data.cmdName || "未知命令";
+        var cmdParam = data.cmdParam || "";
+        var matchedCommand = data.matchedCommand || "";
+        var description = data.description || "";
+        var confirmId = data.confirmId || "";
+
+        // 截断过长的参数显示
+        var displayParam = cmdParam.length > 200 ? cmdParam.substring(0, 200) + "..." : cmdParam;
+
+        swal({
+            title: "⚠️ 危险命令确认",
+            text: "命令: " + cmdName + "\n"
+                + "危险操作: " + matchedCommand + "\n"
+                + "说明: " + description + "\n"
+                + "参数: " + displayParam,
+            icon: "warning",
+            buttons: {
+                cancel: {
+                    text: "拒绝",
+                    value: false,
+                    visible: true,
+                    closeModal: true
+                },
+                confirm: {
+                    text: "执行",
+                    value: true,
+                    visible: true,
+                    closeModal: true
+                }
+            },
+            dangerMode: true,
+            closeOnClickOutside: false,
+            closeOnEsc: false
+        }).then(function (confirmed) {
+            $.ajax({
+                url: getPrefix() + "/chat/cmd/confirm",
+                type: "post",
+                xhrFields: {
+                    withCredentials: true
+                },
+                crossDomain: true,
+                dataType: "json",
+                data: {
+                    "confirmId": confirmId,
+                    "confirmed": confirmed === true
+                },
+                success: function (result) {
+                    if (confirmed) {
+                        showToast("已确认执行命令", 1000);
+                    } else {
+                        showToast("已拒绝执行命令", 1000);
+                    }
+                },
+                error: function (result) {
+                    console.log("命令确认请求失败", result);
+                    showToast("命令确认请求失败", 1000);
+                }
+            });
+        });
     }
 
     // 获取签名
@@ -466,6 +547,20 @@ $(document).ready(function () {
                         localStorage.setItem("token", result.data.token)
                     }
                     notRepeatToast("服务器连接成功，欢迎回来", 1000)
+                    // 重连后主动请求当前session最新状态
+                    var currentActiveChatter = getActiveChatter();
+                    if (currentActiveChatter) {
+                        setTimeout(function () {
+                            var socket = getSocket();
+                            if (socket && socket.readyState === WebSocket.OPEN) {
+                                var action = new Object();
+                                action.code = 220;
+                                action.msg = "ok";
+                                action.data = getChatterId() + ";" + currentActiveChatter.id;
+                                socket.send(JSON.stringify(action));
+                            }
+                        }, 500)
+                    }
                     if (onSuccess) {
                         onSuccess()
                     }
